@@ -199,5 +199,10 @@ with st.expander("🌟 Top Rated Novels (Rating > 4.5)"):
         st.dataframe(top_df)
     else:
         st.warning("⚠️ No novels found with rating above 4.5.")
+
+st.success("✅🥳🎉 Project Done successfully")
+
 st.balloons()
+st.balloons()
+
 
