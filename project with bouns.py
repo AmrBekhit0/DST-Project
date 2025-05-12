@@ -167,7 +167,7 @@ with st.spinner("Cleaning data..."):
 st.success("✅ Data cleaned successfully.")
 
 # Display cleaned data
-with st.expander("Cleaned Data:"):
+with st.expander("🧹 Cleaned Data:"):
     st.dataframe(df_cleaned.head())
 
 # Start the analysis
