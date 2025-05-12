@@ -13,11 +13,11 @@ import sqlite3
 def scrape_data():
     BASE_URL = "https://openlibrary.org"
     SEARCH_URL = "https://openlibrary.org/search?q=subject%3AScience+fiction&mode=ebooks&sort=rating"
+
     session = requests.Session()
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
     }
-
     
     data = []
     page = 1
@@ -34,7 +34,6 @@ def scrape_data():
         soup = BeautifulSoup(response.text, 'html.parser')
         books = soup.find_all('li', class_='searchResultItem')
 
-
         for book in books:
             if len(data) >= 500:
                 break
@@ -44,35 +43,28 @@ def scrape_data():
                 publish_year_raw = book.find('span', class_='resultDetails').text.strip()
                 rating_raw = book.find('span', itemprop='ratingValue').text.strip()
                 wishlist_raw = book.find('span', itemprop='reviewCount').text.strip()
-                
+
                 editions_raw = book.find('a', string=lambda text: text and 'editions' in text)
                 editions_text = editions_raw.get_text(strip=True) if editions_raw else None
 
                 # ----  Regex Processing ----
-                #removing "by" word
                 author = re.sub(r'^\s*by\s+', '', author_raw, flags=re.IGNORECASE) if author_raw else None
-                #removing any strings
-                publish_year = re.search(r"\b(18|19|20)\d{2}\b", publish_year_raw)
-                #removing sympols and keep the rate
-                rating = re.search(r"\d+(\.\d+)?", rating_raw)
-                #removing string
-                wishlist = re.search(r"\d+(,\d+)?", wishlist_raw)
-                #removing
-                editions = re.search(r'\d+', editions_text) if editions_text else None
+                publish_year = re.search(r"\b(18|19|20)\d{2}\b", publish_year_raw).group(0) if publish_year_raw else None
+                rating = float(re.search(r"\d+(\.\d+)?", rating_raw).group(0)) if rating_raw else None
+                wishlist = int(re.search(r"\d+(,\d+)?", wishlist_raw).group(0).replace(',', '')) if wishlist_raw else None
+                editions = re.search(r'\d+', editions_text).group(0) if editions_text else None
 
-
-                if all([title and author and publish_year and rating]):
+                if title and author and publish_year and rating:
                     data.append({
                         'Title': title,
                         'Author': author,
-                        'Publish Year': int(publish_year.group(0)),
-                        'Rating': float(rating.group(0)),
-                        'want to read': int(wishlist.group(0).replace(',', '')) if wishlist else None,
-                        '# of Editions': int(editions.group(0)) if editions else None
+                        'Publish Year': int(publish_year),
+                        'Rating': rating,
+                        'want to read': wishlist,
+                        '# of Editions': editions
                     })
-
             except Exception as e:
-                print(f"Error while parsing book: {e}")
+                st.text(f"Error while parsing book: {e}")
                 continue
 
         page += 1
@@ -159,6 +151,7 @@ def analyze_data(df):
         ax.grid(True)
         st.pyplot(fig)
 
+
 # Streamlit interface
 st.title('Interactive Novels Analysis')
 
@@ -166,8 +159,6 @@ st.title('Interactive Novels Analysis')
 with st.spinner("Scraping book data..."):
     df = scrape_data()
 st.success("✅ Data scraping completed.")
-
-st.text("==================================================================================================================")
 
 # Cleaning Data
 with st.spinner("Cleaning data..."):
@@ -178,14 +169,10 @@ st.success("✅ Data cleaned successfully.")
 st.write("Cleaned Data:")
 st.dataframe(df_cleaned.head())
 
-st.text("==================================================================================================================")
-
 # Start the analysis
 st.text("\nStarting data analysis...")
 analyze_data(df_cleaned)
 st.success("✅ Analysis completed successfully!")
-
-st.text("==================================================================================================================")
 
 # Store the cleaned data into SQLite
 conn = sqlite3.connect("novels.db")
