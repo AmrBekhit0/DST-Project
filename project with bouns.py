@@ -14,69 +14,69 @@ def scrape_data():
     BASE_URL = "https://openlibrary.org"
     SEARCH_URL = "https://openlibrary.org/search?q=subject%3AScience+fiction&mode=ebooks&sort=rating"
     session = requests.Session()
-    # Headers for the HTTP request
-    session.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-    })
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+    }
+
     
     data = []
     page = 1
 
-   while len(data) < 500:
-    print(f"Scraping page {page}...")
-    try:
-        response = session.get(SEARCH_URL + f"&page={page}", headers=headers, timeout=10)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Request error: {e}")
-        break
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-    books = soup.find_all('li', class_='searchResultItem')
-
-
-    for book in books:
-        if len(data) >= 500:
-            break
+    while len(data) < 500:
+        print(f"Scraping page {page}...")
         try:
-            title = book.find('div', class_='resultTitle').text.strip()
-            author_raw = book.find('span', class_='bookauthor').text.strip()
-            publish_year_raw = book.find('span', class_='resultDetails').text.strip()
-            rating_raw = book.find('span', itemprop='ratingValue').text.strip()
-            wishlist_raw = book.find('span', itemprop='reviewCount').text.strip()
-            
-            editions_raw = book.find('a', string=lambda text: text and 'editions' in text)
-            editions_text = editions_raw.get_text(strip=True) if editions_raw else None
+            response = session.get(SEARCH_URL + f"&page={page}", headers=headers, timeout=10)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Request error: {e}")
+            break
 
-            # ----  Regex Processing ----
-            #removing "by" word
-            author = re.sub(r'^\s*by\s+', '', author_raw, flags=re.IGNORECASE) if author_raw else None
-            #removing any strings
-            publish_year = re.search(r"\b(18|19|20)\d{2}\b", publish_year_raw)
-            #removing sympols and keep the rate
-            rating = re.search(r"\d+(\.\d+)?", rating_raw)
-            #removing string
-            wishlist = re.search(r"\d+(,\d+)?", wishlist_raw)
-            #removing
-            editions = re.search(r'\d+', editions_text) if editions_text else None
+        soup = BeautifulSoup(response.text, 'html.parser')
+        books = soup.find_all('li', class_='searchResultItem')
 
 
-            if all([title and author and publish_year and rating]):
-                data.append({
-                    'Title': title,
-                    'Author': author,
-                    'Publish Year': int(publish_year.group(0)),
-                    'Rating': float(rating.group(0)),
-                    'want to read': int(wishlist.group(0).replace(',', '')) if wishlist else None,
-                    '# of Editions': int(editions.group(0)) if editions else None
-                })
+        for book in books:
+            if len(data) >= 500:
+                break
+            try:
+                title = book.find('div', class_='resultTitle').text.strip()
+                author_raw = book.find('span', class_='bookauthor').text.strip()
+                publish_year_raw = book.find('span', class_='resultDetails').text.strip()
+                rating_raw = book.find('span', itemprop='ratingValue').text.strip()
+                wishlist_raw = book.find('span', itemprop='reviewCount').text.strip()
+                
+                editions_raw = book.find('a', string=lambda text: text and 'editions' in text)
+                editions_text = editions_raw.get_text(strip=True) if editions_raw else None
 
-        except Exception as e:
-            print(f"Error while parsing book: {e}")
-            continue
+                # ----  Regex Processing ----
+                #removing "by" word
+                author = re.sub(r'^\s*by\s+', '', author_raw, flags=re.IGNORECASE) if author_raw else None
+                #removing any strings
+                publish_year = re.search(r"\b(18|19|20)\d{2}\b", publish_year_raw)
+                #removing sympols and keep the rate
+                rating = re.search(r"\d+(\.\d+)?", rating_raw)
+                #removing string
+                wishlist = re.search(r"\d+(,\d+)?", wishlist_raw)
+                #removing
+                editions = re.search(r'\d+', editions_text) if editions_text else None
 
-    page += 1
-    time.sleep(0.3)
+
+                if all([title and author and publish_year and rating]):
+                    data.append({
+                        'Title': title,
+                        'Author': author,
+                        'Publish Year': int(publish_year.group(0)),
+                        'Rating': float(rating.group(0)),
+                        'want to read': int(wishlist.group(0).replace(',', '')) if wishlist else None,
+                        '# of Editions': int(editions.group(0)) if editions else None
+                    })
+
+            except Exception as e:
+                print(f"Error while parsing book: {e}")
+                continue
+
+        page += 1
+        time.sleep(0.3)
     
     df = pd.DataFrame(data)
     return df
