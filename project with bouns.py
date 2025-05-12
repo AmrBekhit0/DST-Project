@@ -178,13 +178,15 @@ st.success("✅ Analysis completed successfully!")
 # Store the cleaned data into SQLite
 dfff = df_cleaned[['Title', 'Author', 'Publish Year', 'Rating', 'want to read', '# of Editions', 'Title_Length']]
 conn = sqlite3.connect("novels.db")
-dfff.to_sql("novels", conn, if_exists="replace", index=False)conn.close()
+dfff.to_sql("novels", conn, if_exists="replace", index=False)
+conn.close()
 st.success("✅ Data stored in SQLite successfully!")
 
-# إعادة الاتصال واستعلام الروايات الأعلى تقييماً
+# Reconnect to the database
 conn = sqlite3.connect("novels.db")  
 cursor = conn.cursor()
 
+# Execute a SQL query to get novels with a rating greater than 4.5
 cursor.execute("SELECT * FROM novels WHERE Rating > 4.5")
 rows = cursor.fetchall()
 conn.close()
