@@ -25,7 +25,7 @@ def scrape_data():
     while len(data) < 500:
         print(f"Scraping page {page}...")
         try:
-            response = session.get(SEARCH_URL + f"&page={page}", headers=headers, timeout=10)
+            response = session.get(SEARCH_URL + f"&page={page}", headers=headers)
             response.raise_for_status()
         except requests.RequestException as e:
             print(f"Request error: {e}")
