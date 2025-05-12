@@ -103,17 +103,11 @@ def analyze_data(df):
         with col2:
             st.write("🔽 Shortest 10 Titles")
             st.dataframe(shortest_titles)
-        fig, ax = plt.subplots(1,2,figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(12, 6))
         df['Title_Length'].plot(kind='hist', bins=30, color='skyblue', ax=ax[0])
-        ax[0].set_title('Title Length Distribution')
-        ax[0].set_xlabel('Number of Characters')
-        ax[0].set_ylabel('Number of Books')
-        st.pyplot(fig)
-        df['Title_Length'].plot(kind='hist', bins=30, color='skyblue', ax=ax[1])
-        ax[0].set_title('Title Length Distribution')
-        ax[0].set_xlabel('Number of Characters')
-        ax[0].set_ylabel('Number of Books')
-        st.pyplot(fig)
+        ax.set_title('Title Length Distribution')
+        ax.set_xlabel('Number of Characters')
+        ax.set_ylabel('Number of Books')
 
 
     # Author Analysis
