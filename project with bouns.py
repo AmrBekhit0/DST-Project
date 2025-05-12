@@ -176,9 +176,26 @@ analyze_data(df_cleaned)
 st.success("✅ Analysis completed successfully!")
 
 # Store the cleaned data into SQLite
+dfff = df_cleaned[['Title', 'Author', 'Publish Year', 'Rating', 'want to read', '# of Editions', 'Title_Length']]
 conn = sqlite3.connect("novels.db")
-df_cleaned.to_sql("novels", conn, if_exists="replace", index=False)
+dfff.to_sql("novels", conn, if_exists="replace", index=False)conn.close()
+st.success("✅ Data stored in SQLite successfully!")
+
+# إعادة الاتصال واستعلام الروايات الأعلى تقييماً
+conn = sqlite3.connect("novels.db")  
+cursor = conn.cursor()
+
+cursor.execute("SELECT * FROM novels WHERE Rating > 4.5")
+rows = cursor.fetchall()
 conn.close()
 
-st.success("✅ Data stored in SQLite successfully!")
+# عرض النتائج على Streamlit
+with st.expander("🌟 Top Rated Novels (Rating > 4.5)"):
+    if rows:
+        top_df = pd.DataFrame(rows, columns=['Title', 'Author', 'Publish Year', 'Rating', 'want to read', '# of Editions', 'Title_Length'])
+        st.write(f"📖 Found {len(top_df)} novels with rating > 4.5:")
+        st.dataframe(top_df)
+    else:
+        st.warning("⚠️ No novels found with rating above 4.5.")
 st.balloons()
+
