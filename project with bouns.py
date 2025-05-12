@@ -156,8 +156,8 @@ def analyze_data(df):
 st.title('Interactive Novels Analysis')
 
 # Scraping Data
-st.text("Starting data scraping...")
-df = scrape_data()
+with st.spinner("Scraping book data..."):
+    df = scrape_data()
 st.success("✅ Data scraping completed.")
 
 # Cleaning Data
