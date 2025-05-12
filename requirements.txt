@@ -1,0 +1,9 @@
+streamlit
+requests
+BeautifulSoup4
+pandas
+time
+re
+matplotlib.pyplot
+seaborn
+sqlite3
